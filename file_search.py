@@ -11,13 +11,12 @@ main_path = Path(f"C:\\Users\\{os.getlogin()}\\Desktop")
 
 class FileHandler:
 
-
-    def find_file(file_to_search: str):
+    def find_file(pattern: str):
         f""" 
-        Finds all files with the given name {file_to_search} 
+        Finds all files with the given {pattern}. 
         """
-        file_to_find = main_path.rglob(file_to_search)
-        return file_to_find
+        files = main_path.rglob(pattern)
+        return files
 
     def copy_file(src: str, dest: str):
     # Copies file from a source path to a destination path
@@ -32,24 +31,27 @@ class FileHandler:
         date_string = str(formatted_timestamp)[0:10]
         print(f"Last accessed in: {date_string}")
 
-    def find_file_by_date(direction: Direction, date_str: str):
+    def find_file_by_date(pattern: str, direction: Direction, date_str: str):
+        # Finds a pattern before or after a date
         new_date = DateBuilder.string_to_date(date_str)
-        found_files = main_path.rglob('script.js')
-        match (direction):
-            case Direction.BEFORE:
-                for file in found_files:
-                    timestamp = datetime.fromtimestamp(file.stat().st_atime)
-                    timestamp_str = DateBuilder.timestamp_to_string(timestamp)
-                    file_date = DateBuilder.string_to_date(timestamp_str)
-                    if (file_date < new_date):
-                        print(f"{file.name} - last accessed in {timestamp}")           
+        found_files = main_path.rglob(pattern)
         
 
-file_handler = FileHandler()
-FileHandler.find_file_by_date(Direction.BEFORE, '2024-12-22')
+        for file in found_files: 
+            timestamp = datetime.fromtimestamp(file.stat().st_ctime)
+            timestamp_str = DateBuilder.timestamp_to_string(timestamp)
+            file_date = DateBuilder.string_to_date(timestamp_str)
+            found_msg = f"{file.name} - last accessed in {timestamp}"
 
-# for file in found_files:
-#     show_file_stats(file)
-    # copy_file(file, 'crazyfolder')
+            match (direction):
+                case Direction.BEFORE:
+                        if (file_date < new_date):
+                            print(found_msg)
+                case Direction.AFTER:
+                        if (file_date > new_date):
+                            print(found_msg)
+                            
+file_handler = FileHandler()
+FileHandler.find_file_by_date('sample.txt', Direction.AFTER, '2024-12-01')
 
         
